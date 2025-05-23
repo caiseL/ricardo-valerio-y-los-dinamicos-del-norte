@@ -10,19 +10,23 @@ function EventCatalog() {
   const [eventOptions, setEventOptions] = React.useState<EventOption[]>([]);
   const [selectedEvents, setSelectedEvents] = React.useState<any[]>([]);
   const [compareOpen, setCompareOpen] = React.useState(false);
+  const [selectedEvent, setSelectedEvent] = React.useState(false);
 
   const handleOpenForm = () => setOpen(true);
   const handleCloseForm = () => setOpen(false);
 
-  React.useEffect(() => {
-    ApiService.getEventOptions()
-      .then((response) => {
-        setEventOptions(response);
-      })
-      .catch((error) => {
-        console.error("Error fetching event options:", error);
-      });
-  }, []);
+  React.useEffect(
+    () => {
+      ApiService.getEventOptions()
+        .then((response) => {
+          console.log(response)
+          setEventOptions(response);
+        })
+        .catch((error) => {
+          console.error("Error fetching event options:", error);
+        });
+    }, []
+  );
 
   const handleSelectEvent = (event: any) => {
     setSelectedEvents((prev) => {

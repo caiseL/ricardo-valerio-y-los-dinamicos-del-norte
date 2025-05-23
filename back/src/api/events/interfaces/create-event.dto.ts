@@ -2,7 +2,7 @@ import 'reflect-metadata';
 
 import { IsDateString, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EventOptions } from './event-options.dto';
+import { UserEventOptions } from './user-event-options.dto';
 
 
 export class CreateEventDto {
@@ -24,6 +24,6 @@ export class CreateEventDto {
   @ValidateNested({
     each: true,
   })
-  @Type(() => EventOptions)
-    details: EventOptions;
+  @Type(() => UserEventOptions)
+    details: UserEventOptions;
 }
