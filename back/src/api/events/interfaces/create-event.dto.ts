@@ -1,11 +1,11 @@
-import { IsDate, IsJSON, IsUUID } from 'class-validator';
+import { IsDateString, IsUUID } from 'class-validator';
 
 export class CreateEventDto {
-  @IsDate()
-    startDate: Date;
+  @IsDateString()
+    startDate: string;
 
-  @IsDate()
-    endDate: Date;
+  @IsDateString()
+    endDate: string;
 
   @IsUUID()
     eventOptionId: string;
@@ -13,6 +13,5 @@ export class CreateEventDto {
   @IsUUID()
     eventHallId: string;
 
-  @IsJSON()
-    details: any;
+  details: any;
 }

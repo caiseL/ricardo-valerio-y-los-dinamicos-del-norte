@@ -1,12 +1,12 @@
-import { IsDate, IsEnum, IsJSON, IsUUID } from 'class-validator';
+import { IsDateString, IsEnum, IsUUID } from 'class-validator';
 import { EventStatus } from './event-status.enum';
 
 export class UpdateEventDto {
-  @IsDate()
-    startDate: Date;
+  @IsDateString()
+    startDate: string;
 
-  @IsDate()
-    endDate: Date;
+  @IsDateString()
+    endDate: string;
 
   @IsUUID()
     eventOptionId: string;
@@ -14,9 +14,8 @@ export class UpdateEventDto {
   @IsUUID()
     eventHallId: string;
 
-  @IsJSON()
-    details: any;
-
   @IsEnum(EventStatus)
     status: EventStatus;
+
+  details: any;
 }

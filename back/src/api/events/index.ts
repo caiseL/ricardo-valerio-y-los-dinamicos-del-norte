@@ -9,6 +9,7 @@ import { UserTokenDto } from '../auth/interfaces/user-token.dto';
 import { and, eq } from 'drizzle-orm';
 import { eventHallsTable } from '../event-halls/event-hall.entity';
 import { UpdateEventDto } from './interfaces/update-event.dto';
+import { eventOptionsTable } from '../event-options/event-option.entity';
 
 const router = express.Router();
 
@@ -51,19 +52,19 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
       eventHallId,
     ),
   );
-  if (!eventHallExists) {
+  if (!eventHallExists || eventHallExists.length === 0) {
     return res.status(404).json({
       message: 'Event hall not found',
     });
   }
 
-  const eventOptionExists = await database.select().from(eventsTable).where(
+  const eventOptionExists = await database.select().from(eventOptionsTable).where(
     eq(
-      eventsTable.id,
+      eventOptionsTable.id,
       eventOptionId,
     ),
   );
-  if (!eventOptionExists) {
+  if (!eventOptionExists || eventOptionExists.length === 0) {
     return res.status(404).json({
       message: 'Event option not found',
     });
@@ -81,8 +82,8 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
   const status = EventStatus.PENDING;
   const event = await database.insert(eventsTable).values({
     clientId: token.userId,
-    startDate,
-    endDate,
+    startDate: new Date(startDate),
+    endDate: new Date(endDate),
     eventHallId,
     eventOptionId,
     cost: cost.toString(),
@@ -201,8 +202,8 @@ router.put<{}, {}>('/:eventId', [clientGuard, updateEventValidator, getEventVali
   const { startDate, endDate, eventOptionId, eventHallId, status, details } = eventDto;
 
   const event: Event[] = await database.update(eventsTable).set({
-    startDate,
-    endDate,
+    startDate: new Date(startDate),
+    endDate: new Date(endDate),
     eventOptionId,
     eventHallId,
     details,
