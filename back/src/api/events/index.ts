@@ -6,7 +6,7 @@ import { EventStatus } from './interfaces/event-status.enum';
 import database from '../../database';
 import { clientGuard } from '../auth/middlewares/client.guard';
 import { UserTokenDto } from '../auth/interfaces/user-token.dto';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -21,7 +21,7 @@ const createEventValidator = async (req: Request, res: Response, next: NextFunct
   dto.startDate = req.body.startDate;
   dto.endDate = req.body.endDate;
   dto.eventOptionId = req.body.eventOptionId;
-  dto.placeId = req.body.placeId;
+  dto.eventHallId = req.body.eventHallId;
   dto.details = req.body.details;
 
   const validationError = await validate(dto);
@@ -41,13 +41,14 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
   const eventDto = res.locals.event as CreateEventDto;
   const token = res.locals.user as UserTokenDto;
 
-  const { startDate, endDate, eventOptionId, placeId, details } = eventDto;
+  const { startDate, endDate, eventOptionId, eventHallId, details } = eventDto;
 
   const status = EventStatus.PENDING;
   const event = await database.insert(eventsTable).values({
     clientId: token.userId,
     startDate,
     endDate,
+    eventHallId,
     eventOptionId,
     cost: '0',
     status: EventStatus.PENDING,
@@ -68,7 +69,7 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
       startDate,
       endDate,
       eventOptionId,
-      placeId,
+      eventHallId,
       cost: 0,
       status,
       details,
@@ -103,16 +104,25 @@ const getEventValidator = async (req: Request, res: Response, next: NextFunction
 
 router.get(':/:eventId', [clientGuard, getEventValidator], async (req: Request, res: Response) => {
   const eventId = res.locals.eventId;
-  const event: Event = {
-    id: eventId,
-    clientId: 'clientId',
-    eventOptionId: 'eventOptionId',
-    startDate: new Date(),
-    endDate: new Date(),
-    cost: '100',
-    status: EventStatus.PENDING,
-    details: {},
-  };
+  const token = res.locals.user as UserTokenDto;
+
+  const event: Event[] = await database.select().from(eventsTable).where(
+    and(
+      eq(
+        eventsTable.clientId,
+        token.userId,
+      ),
+      eq(
+        eventsTable.id,
+        eventId,
+      ),
+    ),
+  );
+  if (!event) {
+    return res.status(404).json({
+      message: 'Event not found',
+    });
+  }
 
   return res.status(200).json({
     event,
@@ -122,8 +132,35 @@ router.get(':/:eventId', [clientGuard, getEventValidator], async (req: Request, 
 router.put<{}, {}>('/:eventId', [clientGuard, createEventValidator, getEventValidator], async (req: Request, res: Response) => {
   const eventId = res.locals.eventId;
   const eventDto: CreateEventDto = req.body;
+  const token = res.locals.user as UserTokenDto;
 
-  console.log(eventId, eventDto);
+  const { startDate, endDate, eventOptionId, eventHallId, details } = eventDto;
+
+  const event: Event[] = await database.update(eventsTable).set({
+    startDate,
+    endDate,
+    eventOptionId,
+    eventHallId,
+    details,
+  }).where(
+    and(
+      eq(
+        eventsTable.clientId,
+        token.userId,
+      ),
+      eq(
+        eventsTable.id,
+        eventId,
+      ),
+    ),
+  ).returning();
+
+  if (!event) {
+    return res.status(404).json({
+      message: 'Event not found',
+    });
+  }
+
   return res.status(200).json({
     message: 'Event updated successfully',
   });
@@ -131,8 +168,27 @@ router.put<{}, {}>('/:eventId', [clientGuard, createEventValidator, getEventVali
 
 router.delete<{}, {}>('/:eventId', [clientGuard, getEventValidator], async (req: Request, res: Response) => {
   const eventId = res.locals.eventId;
+  const token = res.locals.user as UserTokenDto;
 
-  console.log(eventId);
+  const event: Event[] = await database.delete(eventsTable).where(
+    and(
+      eq(
+        eventsTable.clientId,
+        token.userId,
+      ),
+      eq(
+        eventsTable.id,
+        eventId,
+      ),
+    ),
+  ).returning();
+
+  if (!event) {
+    return res.status(404).json({
+      message: 'Event not found',
+    });
+  }
+
   return res.status(200).json({
     message: 'Event deleted successfully',
   });

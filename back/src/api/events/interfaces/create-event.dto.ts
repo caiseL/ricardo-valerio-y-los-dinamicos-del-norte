@@ -11,7 +11,7 @@ export class CreateEventDto {
     eventOptionId: string;
 
   @IsUUID()
-    placeId: string;
+    eventHallId: string;
 
   @IsJSON()
     details: any;
