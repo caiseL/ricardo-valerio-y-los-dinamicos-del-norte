@@ -1,11 +1,12 @@
+
 import React from 'react';
 import { Typography, Box } from '@mui/material';
 
-function AdminDashboardPage() {
+function SuppliersPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1">
-        Dashboard
+        Proveedores
       </Typography>
       <Typography variant="body1">
         Aqui
@@ -14,4 +15,4 @@ function AdminDashboardPage() {
   );
 }
 
-export default AdminDashboardPage;
+export default SuppliersPage;

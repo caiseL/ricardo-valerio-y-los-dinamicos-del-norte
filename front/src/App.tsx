@@ -9,6 +9,7 @@ import { Typography } from '@mui/material'; // Para la página 404
 import AdminLayout from './layouts/AdminLayout'; // El layout que creamos
 import AdminDashboardPage from './views/Admin/AdminDashboardPage';
 import InventoryPage from './views/Admin/InventoryPage';
+import SuppliersPage from './views/Admin/SuppliersPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           {/* Rutas hijas que se renderizarán dentro del <Outlet /> de AdminLayout */}
           <Route path="dashboard" element={<AdminDashboardPage />} />
           <Route path="inventory" element={<InventoryPage />} />
+          <Route path="suppliers" element={<SuppliersPage />} />
           {/* Puedes añadir más rutas aquí más tarde, como "suppliers", "events", etc. */}
         </Route>
 

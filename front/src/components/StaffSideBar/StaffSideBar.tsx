@@ -14,7 +14,7 @@ function AdminSidebarMenu() {
       }}
     >
       <Typography variant="h5" sx={{ marginBottom: '20px', textAlign: 'center' }}>
-        Panel Administrador
+        Panel Staff
       </Typography>
       <List>
         <ListItem disablePadding>
@@ -22,17 +22,6 @@ function AdminSidebarMenu() {
             <ListItemText primary="Dashboard" />
           </ListItemButton>
         </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton component={RouterLink} to="/admin/inventory">
-            <ListItemText primary="Inventario" />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton component={RouterLink} to="/admin/suppliers">
-            <ListItemText primary="Proovedores" />
-          </ListItemButton>
-        </ListItem>
-        {/* Aquí podrías añadir más enlaces después */}
       </List>
     </Box>
   );
