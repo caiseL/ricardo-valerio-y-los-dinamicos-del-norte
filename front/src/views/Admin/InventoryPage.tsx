@@ -9,10 +9,14 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  TextField, 
+  TextField,
   Divider,
+  Card,
+  CardContent,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
 interface InventoryItem {
   id: string | number;
   name: string;
@@ -20,8 +24,7 @@ interface InventoryItem {
   category?: string;
 }
 
-// Simulación de API_BASE_URL, ajusta si tienes una real
-// const API_BASE_URL = 'http://localhost:TU_PUERTO_BACKEND/api/admin';
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#B71C1C', '#6A1B9A'];
 
 function InventoryPage() {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -29,42 +32,42 @@ function InventoryPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [newItemName, setNewItemName] = useState<string>('');
-  const [newItemQuantity, setNewItemQuantity] = useState<string>(''); // Usamos string para el input
+  const [newItemQuantity, setNewItemQuantity] = useState<string>('');
 
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    console.log("Intentando cargar inventario...");
 
-    // --- SIMULACIÓN DE LLAMADA AL BACKEND ---
     setTimeout(() => {
       try {
-        // En un caso real:
-        // const response = await fetch(`${API_BASE_URL}/inventory`);
-        // if (!response.ok) throw new Error('Failed to fetch inventory');
-        // const data: InventoryItem[] = await response.json();
-        // setInventoryItems(data);
-
-        // Datos de ejemplo
         const exampleData: InventoryItem[] = [
           { id: 1, name: 'Manteles', quantity: 50, category: 'Textiles' },
           { id: 2, name: 'Sillas Plegables', quantity: 200, category: 'Mobiliario' },
           { id: 3, name: 'Copas de Vino', quantity: 150, category: 'Vajilla' },
+          { id: 4, name: 'Vasos', quantity: 20, category: 'Vajilla' },
+          { id: 5, name: 'Servilletas', quantity: 10, category: 'Textiles' },
         ];
         setInventoryItems(exampleData);
-        console.log("Inventario cargado (simulado):", exampleData);
         setIsLoading(false);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
         setError(errorMessage);
-        console.error("Error cargando inventario (simulado):", errorMessage);
         setIsLoading(false);
       }
-    }, 1000); // Simula un retraso de red
-    // --- FIN SIMULACIÓN ---
-  }, []); // Array vacío para que se ejecute solo al montar
+    }, 1000);
+  }, []);
 
-  // Manejador para añadir un nuevo item (simulado)
+  // Resumen
+  const totalItems = inventoryItems.length;
+  const totalQuantity = inventoryItems.reduce((acc, item) => acc + item.quantity, 0);
+  const categories = Array.from(new Set(inventoryItems.map(item => item.category || 'Sin categoría')));
+  const itemsByCategory = categories.map(cat => ({
+    name: cat,
+    value: inventoryItems.filter(item => (item.category || 'Sin categoría') === cat)
+      .reduce((acc, item) => acc + item.quantity, 0),
+  }));
+
+  // Añadir nuevo ítem
   const handleAddNewItem = () => {
     if (!newItemName.trim() || !newItemQuantity.trim()) {
       setError("Por favor, ingresa nombre y cantidad.");
@@ -72,39 +75,19 @@ function InventoryPage() {
     }
     const quantity = parseInt(newItemQuantity, 10);
     if (isNaN(quantity) || quantity < 0) {
-        setError("La cantidad debe ser un número válido.");
-        return;
+      setError("La cantidad debe ser un número válido.");
+      return;
     }
-
-    setError(null); // Limpiar errores previos
-
+    setError(null);
     const newItem: InventoryItem = {
-      id: `new-${Date.now()}`, // ID temporal simple
+      id: `new-${Date.now()}`,
       name: newItemName,
       quantity: quantity,
-      category: 'General', // Categoría por defecto
+      category: 'General',
     };
-
-    // --- SIMULACIÓN DE ENVÍO AL BACKEND ---
-    console.log('Intentando añadir nuevo ítem (simulado):', newItem);
-    // En un caso real:
-    // try {
-    //   const response = await fetch(`${API_BASE_URL}/inventory`, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(newItem), // Enviarías sin el ID temporal
-    //   });
-    //   if (!response.ok) throw new Error('Failed to add item');
-    //   const addedItemFromApi: InventoryItem = await response.json();
-    //   setInventoryItems(prevItems => [...prevItems, addedItemFromApi]);
-    // } catch (err) {
-    //   setError(err instanceof Error ? err.message : 'Error añadiendo ítem');
-    // }
-
     setInventoryItems(prevItems => [...prevItems, newItem]);
-    setNewItemName(''); 
+    setNewItemName('');
     setNewItemQuantity('');
-    console.log('Nuevo ítem añadido (simulado) a la lista.');
   };
 
   if (isLoading) {
@@ -117,14 +100,62 @@ function InventoryPage() {
   }
 
   return (
-    <Box sx={{ p: 3 }}> {/* Padding alrededor de toda la página */}
+    <Box sx={{ p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Gestión de Inventario
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      {/* Formulario Simple para Añadir Item */}
+      {/* Resumen visual */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <Card sx={{ flex: 1, minWidth: 220 }}>
+          <CardContent>
+            <Typography variant="subtitle1">Total de Ítems</Typography>
+            <Typography variant="h5">{totalItems}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ flex: 1, minWidth: 220 }}>
+          <CardContent>
+            <Typography variant="subtitle1">Cantidad Total</Typography>
+            <Typography variant="h5">{totalQuantity}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ flex: 1, minWidth: 220 }}>
+          <CardContent>
+            <Typography variant="subtitle1">Categorías</Typography>
+            <Typography variant="h5">{categories.length}</Typography>
+          </CardContent>
+        </Card>
+      </Box>
+
+      {/* Gráfica de pastel */}
+      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>Distribución por Categoría</Typography>
+        <Box sx={{ width: '100%', height: 250 }}>
+          <ResponsiveContainer>
+            <PieChart>
+              <Pie
+                data={itemsByCategory}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                label
+              >
+                {itemsByCategory.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </Box>
+      </Paper>
+
+      {/* Formulario para añadir ítem */}
       <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
         <Typography variant="h6" gutterBottom>Añadir Nuevo Ítem</Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -150,7 +181,7 @@ function InventoryPage() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleAddNewItem}
-            sx={{ height: '40px' }} // Para alinear con los TextFields small
+            sx={{ height: '40px' }}
           >
             Añadir Ítem
           </Button>
@@ -173,13 +204,21 @@ function InventoryPage() {
                 <ListItem>
                   <ListItemText
                     primary={`${item.name} (${item.category || 'Sin categoría'})`}
-                    secondary={`Cantidad: ${item.quantity}`}
+                    secondary={
+                      <Typography
+                        component="span"
+                        color={item.quantity < 15 ? 'error.main' : 'text.primary'}
+                        fontWeight={item.quantity < 15 ? 'bold' : 'normal'}
+                      >
+                        Cantidad: {item.quantity}
+                        {item.quantity < 15 && ' (Bajo)'}
+                      </Typography>
+                    }
                   />
-                  {/* Aquí podrías añadir botones de Editar/Eliminar más adelante */}
                   <Button variant="outlined" size="small" onClick={() => alert(`Editar ${item.name} - ¡Funcionalidad pendiente!`)}>
                     Editar
                   </Button>
-                  <Button variant="outlined" size="small" color="error" sx={{ml:1}} onClick={() => alert(`Eliminar ${item.name} - ¡Funcionalidad pendiente!`)}>
+                  <Button variant="outlined" size="small" color="error" sx={{ ml: 1 }} onClick={() => alert(`Eliminar ${item.name} - ¡Funcionalidad pendiente!`)}>
                     Eliminar
                   </Button>
                 </ListItem>

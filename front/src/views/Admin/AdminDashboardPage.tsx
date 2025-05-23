@@ -1,17 +1,17 @@
 import React from 'react';
-import { Typography, Box } from '@mui/material';
+import { Box } from '@mui/material';
+import ResourceConsumption from '../../components/ResourceConsumption/ResourceConsumption';
+import StaffPerformance from '../../components/StaffPerformance/StaffPerformance';
+import ProfitabilityAnalysis from '../../components/ProfitabilityAnalysis/ProfitabilityAnalysis';
+import CustomerSatisfaction from '../../components/Customer Satisfaction/CustomerSatisfaction';
 
-function AdminDashboardPage() {
-  return (
-    <Box>
-      <Typography variant="h4" component="h1">
-        Dashboard
-      </Typography>
-      <Typography variant="body1">
-        Aqui
-      </Typography>
-    </Box>
-  );
-}
+const AdminDashboardPage = () => (
+  <Box sx={{ p: 3 }}>
+    <ProfitabilityAnalysis />
+    <CustomerSatisfaction />
+    <ResourceConsumption />
+    <StaffPerformance />
+  </Box>
+);
 
 export default AdminDashboardPage;
