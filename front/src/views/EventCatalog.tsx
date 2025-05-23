@@ -10,6 +10,7 @@ function EventCatalog() {
   const [open, setOpen] = React.useState(false);
   const [eventOptions, setEventOptions] = React.useState<EventOption[]>([]);
   const [selectedEvents, setSelectedEvents] = React.useState<EventOption[]>([]);
+  const [selectedEvent, setSelectedEvent] = React.useState<EventOption | undefined>(undefined);
   const [compareOpen, setCompareOpen] = React.useState(false);
 
   const handleOpenForm = () => setOpen(true);
@@ -42,10 +43,10 @@ function EventCatalog() {
     <Container maxWidth="xl">
       <Box sx={{ py: 4 }}>
         {/* Header */}
-        <Stack 
-          direction="row" 
-          justifyContent="space-between" 
-          alignItems="center" 
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
           sx={{ mb: 4 }}
         >
           <Typography variant="h4" fontWeight="bold" color="text.primary">
@@ -89,7 +90,11 @@ function EventCatalog() {
                   menuOptions={eventOption.options.menuOptions}
                   musicOptions={eventOption.options.musicOptions}
                   baseCost={eventOption.options.baseCost}
-                  onDetailsClick={handleOpenForm}
+                  onDetailsClick={
+                    () => {
+                      setSelectedEvent(eventOption);
+                    }
+                  }
                   selected={!!selectedEvents.find((e) => e.id === eventOption.id)}
                 />
               </Box>
@@ -121,15 +126,15 @@ function EventCatalog() {
               </Typography>
 
               <Box sx={{ overflowX: 'auto' }}>
-                <table style={{ 
-                  width: '100%', 
+                <table style={{
+                  width: '100%',
                   borderCollapse: 'collapse',
                   backgroundColor: 'white',
                 }}>
                   <thead>
                     <tr>
-                      <th style={{ 
-                        padding: '16px', 
+                      <th style={{
+                        padding: '16px',
                         textAlign: 'left',
                         borderBottom: '2px solid #e2e8f0',
                         backgroundColor: '#f8fafc'
@@ -137,7 +142,7 @@ function EventCatalog() {
                         Características
                       </th>
                       {selectedEvents.map((event) => (
-                        <th key={event.id} style={{ 
+                        <th key={event.id} style={{
                           padding: '16px',
                           textAlign: 'left',
                           borderBottom: '2px solid #e2e8f0',
@@ -184,8 +189,8 @@ function EventCatalog() {
                         Precio Base
                       </td>
                       {selectedEvents.map((event) => (
-                        <td key={event.id} style={{ 
-                          padding: '16px', 
+                        <td key={event.id} style={{
+                          padding: '16px',
                           borderBottom: '1px solid #e2e8f0',
                           color: '#3b82f6',
                           fontWeight: 600
@@ -211,7 +216,12 @@ function EventCatalog() {
           </Paper>
         )}
 
-        <EventForm open={open} onClose={handleCloseForm} />
+        <EventForm event={selectedEvent} onClose={
+          () => {
+            setSelectedEvent(undefined);
+            handleCloseForm();
+          }
+        } />
       </Box>
     </Container>
   );

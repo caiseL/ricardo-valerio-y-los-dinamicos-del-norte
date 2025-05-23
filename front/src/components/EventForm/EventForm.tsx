@@ -8,40 +8,114 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
+import { Checkbox, InputLabel, Select } from '@mui/material';
+import { ApiService, CreateUserEventDto, EventHall, EventOption } from '../../services/api.service';
 import { Box, Stack, Alert } from '@mui/material';
 
 interface EventFormProps {
-  open: boolean;
+  event: EventOption | undefined;
   onClose: () => void;
 }
 
-export default function EventForm({ open, onClose }: EventFormProps) {
+export default function EventForm({ event: eventOption, onClose }: EventFormProps) {
   const [form, setForm] = React.useState({
-    date: '',
-    startTime: '',
-    endTime: '',
-    place: '',
-    music: '',
-    guests: '',
+    startDate: new Date().toISOString().slice(0, 16) || '',
+    name: '',
+    endDate: '',
+    hall: '',
+    attendees: '',
+    catering: false,
     menu: '',
-    cost: '',
+    music: '',
   });
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [cost, setCost] = React.useState<number>(0);
+  const [halls, setHalls] = React.useState<EventHall[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const calculateTotalCost = () => {
+    const createEvent: CreateUserEventDto = {
+      name: form.name,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      eventHallId: form.hall,
+      eventOptionId: eventOption?.id!,
+      details: {
+        catering: form.catering,
+        attendees: Number(form.attendees),
+        menu: form.menu,
+        music: form.music,
+      }
+    };
+    ApiService.calculateEventCost(createEvent)
+      .then((response) => {
+        console.log('Cost calculated successfully:', response);
+        setCost(response);
+      })
+      .catch((error) => {
+        console.error('Error calculating cost:', error);
+        setErrorMessage('Error calculating cost. Please try again.');
+      });
+  }
+
+  const fetchHalls = () => {
+    ApiService.getEventHalls()
+      .then((response) => {
+        setHalls(response);
+      })
+      .catch((error) => {
+        console.error('Error fetching halls:', error);
+        setErrorMessage('Error fetching halls. Please try again.');
+      });
+  }
+
+
+  React.useEffect(
+    () => {
+      fetchHalls();
+    },
+    []
+  )
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log(form);
-    onClose();
+
+    const createEvent: CreateUserEventDto = {
+      name: form.name,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      eventHallId: form.hall,
+      eventOptionId: eventOption?.id!,
+      details: {
+        attendees: Number(form.attendees),
+        menu: form.menu,
+        music: form.music,
+        catering: form.catering,
+      }
+    };
+    ApiService.createEvent(createEvent)
+      .then((response) => {
+        console.log('Event created successfully:', response);
+        onClose();
+      })
+      .catch((error) => {
+        console.error('Error creating event:', error);
+        setErrorMessage('Error creating event. Please try again.');
+      });
   };
 
+  if (!eventOption) {
+    return null;
+  }
+
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="sm" 
+    <Dialog
+      open={eventOption !== undefined}
+      onClose={onClose}
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
@@ -63,126 +137,155 @@ export default function EventForm({ open, onClose }: EventFormProps) {
         </DialogTitle>
 
         <DialogContent>
+
+          <TextField
+            required
+            margin="dense"
+            id="name"
+            name="name"
+            label="Nombre del evento"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={form.name}
+            onChange={handleChange}
+          />
+          <InputLabel id="catering">Servicio?</InputLabel>
+          <Checkbox
+            id="catering"
+            checked={form.catering}
+            onChange={(e) => {
+              calculateTotalCost();
+              return setForm({ ...form, catering: e.target.checked });
+            }}
+          />
+          <TextField
+            required
+            margin="dense"
+            id="startDate"
+            name="startDate"
+            label="Inicio"
+            type="datetime-local"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={form.startDate}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, startDate: e.target.value });
+              }
+            }
+          />
+          <TextField
+            required
+            margin="dense"
+            id="endDate"
+            name="endDate"
+            label="Fin"
+            type="datetime-local"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={form.endDate}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, endDate: e.target.value });
+              }
+            }
+          />
+          <InputLabel id="hall-label">Salón</InputLabel>
+          <Select
+            id="hall-label"
+            value={form.hall}
+            onChange={
+              (e) => setForm({ ...form, hall: e.target.value as string })
+            }
+          >
+            {
+              halls.map((hall) => (
+                <MenuItem key={hall.id} value={hall.id}>
+                  {hall.name}
+                </MenuItem>
+              ))
+            }
+          </Select>
+
+          <InputLabel id="music-label">Musica</InputLabel>
+          <Select
+            id="music-label"
+            value={form.music}
+            disabled={!eventOption?.options.musicOptions.length}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, music: e.target.value as string });
+              }
+            }
+          >
+            {
+              eventOption?.options.musicOptions.map((music) => (
+                <MenuItem key={music} value={music}>
+                  {music}
+                </MenuItem>
+              ))
+            }
+          </Select>
+
+          <InputLabel id="menu-label">Menu</InputLabel>
+          <Select
+            id="menu-label"
+            value={form.menu}
+            disabled={!eventOption?.options.menuOptions.length}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, menu: e.target.value as string });
+              }
+            }
+          >
+            {
+              eventOption?.options.menuOptions.map((menu) => (
+                <MenuItem key={menu} value={menu}>
+                  {menu}
+                </MenuItem>
+              ))
+            }
+          </Select>
+
+          <TextField
+            required
+            margin="dense"
+            id="attendees"
+            name="attendees"
+            label="Número de invitados"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={form.attendees}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, attendees: e.target.value });
+              }
+            }
+          />
+
           <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField
-              required
-              id="date"
-              name="date"
-              label="Fecha"
-              type="date"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              value={form.date}
-              onChange={handleChange}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-            />
-
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField
-                required
-                id="startTime"
-                name="startTime"
-                label="Horario de inicio"
-                type="time"
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                value={form.startTime}
-                onChange={handleChange}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-              />
-
-              <TextField
-                required
-                id="endTime"
-                name="endTime"
-                label="Horario de finalización"
-                type="time"
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                value={form.endTime}
-                onChange={handleChange}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-              />
-            </Stack>
 
             <TextField
-              required
-              id="place"
-              name="place"
-              label="Lugar"
-              select
-              fullWidth
-              value={form.place}
-              onChange={handleChange}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-            >
-              <MenuItem value="salon1">Salón Principal</MenuItem>
-              <MenuItem value="salon2">Salón VIP</MenuItem>
-              <MenuItem value="jardin">Jardín de Eventos</MenuItem>
-            </TextField>
-
-            <TextField
-              required
-              id="music"
-              name="music"
-              label="Música"
-              select
-              fullWidth
-              value={form.music}
-              onChange={handleChange}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-            >
-              <MenuItem value="banda">Banda</MenuItem>
-              <MenuItem value="dj">DJ</MenuItem>
-              <MenuItem value="norteña">Norteña</MenuItem>
-              <MenuItem value="otro">Otro</MenuItem>
-            </TextField>
-
-            <TextField
-              required
-              id="guests"
-              name="guests"
-              label="Número de invitados"
-              type="number"
-              fullWidth
-              value={form.guests}
-              onChange={handleChange}
-              inputProps={{ min: 1 }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-            />
-
-            <TextField
-              required
-              id="menu"
-              name="menu"
-              label="Menú"
-              select
-              fullWidth
-              value={form.menu}
-              onChange={handleChange}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-            >
-              <MenuItem value="buffet">Buffet Internacional</MenuItem>
-              <MenuItem value="mexicana">Comida Mexicana</MenuItem>
-              <MenuItem value="gourmet">Menú Gourmet</MenuItem>
-            </TextField>
-
-            <TextField
+              disabled
               margin="dense"
               id="cost"
               name="cost"
               label="Costo estimado"
               type="number"
               fullWidth
-              value={form.cost}
-              onChange={handleChange}
+              value={cost}
               InputProps={{
                 startAdornment: <InputAdornment position="start">$</InputAdornment>,
                 readOnly: true,
               }}
               helperText="El costo se calcula automáticamente basado en tus selecciones."
-              sx={{ 
-                '& .MuiOutlinedInput-root': { 
+              sx={{
+                '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
                   backgroundColor: 'action.hover'
                 }
@@ -193,13 +296,13 @@ export default function EventForm({ open, onClose }: EventFormProps) {
               Los precios pueden variar según la temporada y disponibilidad.
             </Alert>
           </Stack>
-        </DialogContent>
+        </DialogContent >
 
         <DialogActions sx={{ p: 3 }}>
-          <Button 
+          <Button
             onClick={onClose}
             variant="outlined"
-            sx={{ 
+            sx={{
               borderRadius: 2,
               px: 3,
               py: 1,
@@ -209,10 +312,10 @@ export default function EventForm({ open, onClose }: EventFormProps) {
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             variant="contained"
-            sx={{ 
+            sx={{
               borderRadius: 2,
               px: 3,
               py: 1,
@@ -223,7 +326,7 @@ export default function EventForm({ open, onClose }: EventFormProps) {
             Reservar Evento
           </Button>
         </DialogActions>
-      </form>
-    </Dialog>
+      </form >
+    </Dialog >
   );
 }

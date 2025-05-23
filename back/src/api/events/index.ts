@@ -139,6 +139,35 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
   });
 });
 
+router.post('/calculate-cost', [createEventValidator], async (req: Request, res: Response) => {
+  const eventDto = res.locals.event as CreateEventDto;
+
+  const { eventOptionId } = eventDto;
+
+  const eventOptionExists = await database.select().from(eventOptionsTable).where(
+    eq(
+      eventOptionsTable.id,
+      eventOptionId,
+    ),
+  );
+  if (!eventOptionExists || eventOptionExists.length === 0) {
+    return res.status(404).json({
+      message: 'Event option not found',
+    });
+  }
+
+  const eventOption = eventOptionExists[0];
+  console.log('eventDto', eventDto);
+  console.log('eventOption.options', eventOption.options as any);
+  const cost = calculateEventTotalCost(eventDto, eventOption.options as any);
+  console.log('cost', cost);
+
+  return res.status(200).json({
+    message: 'Event cost calculated successfully',
+    cost,
+  });
+});
+
 router.get('/me', async (req: Request, res: Response) => {
   const errorMessage = await userTokenValidator(req, res);
   if (errorMessage) {

@@ -78,6 +78,21 @@ export class ApiService {
     return await response.json();
   }
 
+  static async calculateEventCost(event: CreateUserEventDto): Promise<number> {
+    const response = await fetch("http://localhost:8000/api/v1/events/calculate-cost", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to calculate event cost");
+    }
+    const jsonResponse = await response.json();
+    return jsonResponse["cost"];
+  }
+
   static async login(credentials: Credential): Promise<any> {
     const response = await fetch("http://localhost:8000/api/v1/auth/login", {
       method: "POST",
@@ -110,6 +125,7 @@ interface Credential {
 }
 
 interface UserEventDetail {
+  catering: boolean;
   menu: string;
   music: string;
   attendees: number;
