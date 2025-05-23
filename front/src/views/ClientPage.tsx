@@ -1,18 +1,14 @@
-import './ClientPage.css';
+import '../css/ClientPage.css';
 
+import { Outlet } from 'react-router-dom';
 import SidebarMenu from '../components/SidebarMenu/SidebarMenu';
-import EventCatalog from './EventCatalog';
-import ScheduledEvents from './ScheduledEvents';
-import {useState} from 'react';
 
 function ClientPage() {
-  const [activeTab, setActiveTab] = useState('catalog');
 
   return (
-    <div className="App">
+    <div className="client-page">
       <SidebarMenu></SidebarMenu>
-      {activeTab === 'catalog' && <EventCatalog></EventCatalog>}
-      {activeTab === 'schedule' && <ScheduledEvents></ScheduledEvents>}  
+      <Outlet/>
     </div>
   );
 }
