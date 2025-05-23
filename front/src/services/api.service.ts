@@ -6,6 +6,40 @@ export class ApiService {
     }
     return await response.json();
   }
+
+  static async getUserEvents(): Promise<UserEvent[]> {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      throw new Error("Access token not found");
+    }
+    const response = await fetch("http://localhost:8000/api/v1/events/me", {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+    if (!response.ok) {
+      throw new Error("Failed to fetch user events");
+    }
+    const jsonResponse = await response.json() as { events: UserEvent[] };
+    return jsonResponse["events"];
+  }
+}
+
+interface UserEventDetail {
+  menu: string;
+  music: string;
+  attendees: number;
+}
+
+export interface UserEvent {
+  id: string;
+  startDate: string;
+  endDate: string;
+  name: string;
+  status: string;
+  cost: number;
+  details: UserEventDetail
 }
 
 export interface EventOption {

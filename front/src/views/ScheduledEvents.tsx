@@ -1,41 +1,44 @@
 import '../css/ScheduledEvents.css';
 import * as React from 'react';
-import Button from '@mui/material/Button';
 import EventBar from '../components/EventBar/EventBar';
 import EventDetails from '../components/EventDetails/EventsDetails';
-
-const mockEvent = {
-  id: 1,
-  name: "Fiesta de Cumpleaños",
-  status: "Confirmado",
-  date: "2024-06-15",
-  startTime: "18:00",
-  endTime: "23:00",
-  place: "Salón Principal",
-  music: "DJ en vivo",
-  guests: 50,
-  menu: "Buffet internacional",
-  cost: 1200
-};
+import { ApiService, UserEvent } from '../services/api.service';
 
 function ScheduledEvents() {
   const [open, setOpen] = React.useState(false);
-  const [selectedEvent, setSelectedEvent] = React.useState(mockEvent);
+  const [selectedEvent, setSelectedEvent] = React.useState(null);
+  const [userEvents, setUserEvents] = React.useState<UserEvent[]>([]);
 
   const handleOpenForm = () => setOpen(true);
   const handleCloseForm = () => setOpen(false);
 
+  React.useEffect(() => {
+    ApiService.getUserEvents()
+      .then((response) => {
+        console.log(response)
+        setUserEvents(response);
+      })
+      .catch((error) => {
+        console.error("Error fetching user events:", error);
+      });
+  }, []);
+
+
   return (
     <div className="scheduled-events">
-      <h2>Mis eventos:</h2>   
-      <div className="bar-container">        
-        <EventBar name="Evento 1" status="Confirmado" onDetailsClick={handleOpenForm}></EventBar>
-        <EventDetails 
-          open={open} 
-          onClose={handleCloseForm} 
-          event={selectedEvent}
-        />
-      </div>
+      <h2>Mis eventos:</h2>
+      {
+        userEvents.map((event) => (
+          <div className="bar-container" key={event.id}>
+            <EventBar name={event.name} status={event.status} onDetailsClick={handleOpenForm}></EventBar>
+            <EventDetails
+              open={open}
+              onClose={handleCloseForm}
+              event={event}
+            />
+          </div>
+        ))
+      }
     </div>
   );
 }
