@@ -1,9 +1,5 @@
 import { IsEmail, IsEnum, IsString, Length } from 'class-validator';
-
-enum UserType {
-  CLIENT,
-  STAFF,
-}
+import { UserType } from './user-type.enum';
 
 export class LoginDto {
   @IsEmail()
