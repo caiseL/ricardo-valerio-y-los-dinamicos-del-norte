@@ -10,9 +10,6 @@ function EventCatalog() {
 
   const handleOpenForm = () => setOpen(true);
   const handleCloseForm = () => setOpen(false);
-  const handleOnClick = () => {
-    setSelectedEvent((prev) => !prev);
-  };
 
   return (
     <div className="event-catalog">
@@ -22,7 +19,6 @@ function EventCatalog() {
           <Button variant="contained">Comparar</Button>
         </div>
         <div className="cards-container">
-          <div onClick={handleOnClick} style={{ cursor: "pointer" }}>
             <EventCard
               name="paquete 1"
               menu="barbacoa"
@@ -32,7 +28,6 @@ function EventCatalog() {
               onDetailsClick={handleOpenForm}
               selected={selectedEvent}
             />
-          </div>
         </div>
         <EventForm open={open} onClose={handleCloseForm} />
       </div>
