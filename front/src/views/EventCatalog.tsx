@@ -3,16 +3,32 @@ import * as React from "react";
 import Button from "@mui/material/Button";
 import EventCard from "../components/EventCard/EventCard";
 import EventForm from "../components/EventForm/EventForm";
+import { ApiService, EventOption } from "../services/api.service";
 
 function EventCatalog() {
   const [open, setOpen] = React.useState(false);
   const [selectedEvent, setSelectedEvent] = React.useState(false);
+  const [eventOptions, setEventOptions] = React.useState<EventOption[]>([]);
 
   const handleOpenForm = () => setOpen(true);
   const handleCloseForm = () => setOpen(false);
   const handleOnClick = () => {
     setSelectedEvent((prev) => !prev);
   };
+
+
+  React.useEffect(
+    () => {
+      ApiService.getEventOptions()
+        .then((response) => {
+          console.log(response)
+          setEventOptions(response);
+        })
+        .catch((error) => {
+          console.error("Error fetching event options:", error);
+        });
+    }, []
+  );
 
   return (
     <div className="event-catalog">
@@ -23,15 +39,21 @@ function EventCatalog() {
         </div>
         <div className="cards-container">
           <div onClick={handleOnClick} style={{ cursor: "pointer" }}>
-            <EventCard
-              name="paquete 1"
-              menu="barbacoa"
-              music="banda"
-              guests={50}
-              basePrice={100000}
-              onDetailsClick={handleOpenForm}
-              selected={selectedEvent}
-            />
+            {
+              eventOptions.map((eventOption) => (
+                <EventCard
+                  key={eventOption.id}
+                  name={eventOption.name}
+                  minAttendees={eventOption.options.minAttendees}
+                  maxAttendees={eventOption.options.maxAttendees}
+                  menuOptions={eventOption.options.menuOptions}
+                  musicOptions={eventOption.options.musicOptions}
+                  baseCost={eventOption.options.baseCost}
+                  onDetailsClick={handleOpenForm}
+                  selected={selectedEvent}
+                />
+              ))
+            }
           </div>
         </div>
         <EventForm open={open} onClose={handleCloseForm} />
