@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { CreateStaffDto } from './interfaces/create-staff.dto';
 import { validate } from 'class-validator';
+import { staffGuard } from '../auth/middlewares/staff.guard';
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ const createStaffValidator = async (req: Request, res: Response, next: NextFunct
   next();
 };
 
-router.post<{}, {}>('/', [createStaffValidator], async (_: Request, res: Response) => {
+router.post<{}, {}>('/', [staffGuard, createStaffValidator], async (_: Request, res: Response) => {
   const staffDto: CreateStaffDto = res.locals.staff;
   console.log(staffDto);
 });

@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { CreateEventDto } from './interfaces/create-event.dto';
 import { validate } from 'class-validator';
 import { Event } from './event';
+import { clientGuard } from '../auth/middlewares/client.guard';
 
 const router = express.Router();
 
@@ -32,14 +33,14 @@ const createEventValidator = async (req: Request, res: Response, next: NextFunct
   next();
 };
 
-router.post<{}, {}>('/', [createEventValidator], async (_: Request, res: Response) => {
+router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request, res: Response) => {
   const eventDto: CreateEventDto = res.locals.event;
   console.log(eventDto);
 });
 
 
 
-router.get('/me', async (_: Request, res: Response) => {
+router.get('/me', [clientGuard], async (_: Request, res: Response) => {
   const events: Event[] = [];
   return res.status(200).json({
     events,
@@ -58,7 +59,7 @@ const getEventValidator = async (req: Request, res: Response, next: NextFunction
   next();
 };
 
-router.get(':/:eventId', [getEventValidator], async (req: Request, res: Response) => {
+router.get(':/:eventId', [clientGuard, getEventValidator], async (req: Request, res: Response) => {
   const eventId = res.locals.eventId;
   const event: Event = {
     id: eventId,
@@ -74,7 +75,7 @@ router.get(':/:eventId', [getEventValidator], async (req: Request, res: Response
   });
 });
 
-router.put<{}, {}>('/:eventId', [createEventValidator, getEventValidator], async (req: Request, res: Response) => {
+router.put<{}, {}>('/:eventId', [clientGuard, createEventValidator, getEventValidator], async (req: Request, res: Response) => {
   const eventId = res.locals.eventId;
   const eventDto: CreateEventDto = req.body;
 
@@ -84,7 +85,7 @@ router.put<{}, {}>('/:eventId', [createEventValidator, getEventValidator], async
   });
 });
 
-router.delete<{}, {}>('/:eventId', [getEventValidator], async (req: Request, res: Response) => {
+router.delete<{}, {}>('/:eventId', [clientGuard, getEventValidator], async (req: Request, res: Response) => {
   const eventId = res.locals.eventId;
 
   console.log(eventId);
