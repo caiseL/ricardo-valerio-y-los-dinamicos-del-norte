@@ -3,42 +3,26 @@ import * as React from "react";
 import Button from "@mui/material/Button";
 import EventCard from "../components/EventCard/EventCard";
 import EventForm from "../components/EventForm/EventForm";
+import { ApiService, EventOption } from "../services/api.service";
 
 function EventCatalog() {
   const [open, setOpen] = React.useState(false);
+  const [eventOptions, setEventOptions] = React.useState<EventOption[]>([]);
   const [selectedEvents, setSelectedEvents] = React.useState<any[]>([]);
   const [compareOpen, setCompareOpen] = React.useState(false);
 
-  // Example event data (replace with your real data source)
-  const events = [
-    {
-      id: 1,
-      name: 'paquete 1',
-      menu: 'barbacoa',
-      music: 'banda',
-      guests: 50,
-      basePrice: 100000,
-    },
-    {
-      id: 2,
-      name: 'paquete 2',
-      menu: 'mexicana',
-      music: 'dj',
-      guests: 80,
-      basePrice: 150000,
-    },
-    {
-      id: 3,
-      name: 'paquete 3',
-      menu: 'italiana',
-      music: 'norteña',
-      guests: 100,
-      basePrice: 200000,
-    },
-  ];
-
   const handleOpenForm = () => setOpen(true);
   const handleCloseForm = () => setOpen(false);
+
+  React.useEffect(() => {
+    ApiService.getEventOptions()
+      .then((response) => {
+        setEventOptions(response);
+      })
+      .catch((error) => {
+        console.error("Error fetching event options:", error);
+      });
+  }, []);
 
   const handleSelectEvent = (event: any) => {
     setSelectedEvents((prev) => {
@@ -51,9 +35,7 @@ function EventCatalog() {
     });
   };
 
-  const handleCompare = () => {
-    setCompareOpen(true);
-  };
+  const handleCompare = () => setCompareOpen(true);
   const handleCloseCompare = () => setCompareOpen(false);
 
   return (
@@ -66,16 +48,17 @@ function EventCatalog() {
           </Button>
         </div>
         <div className="cards-container">
-          {events.map((event) => (
-            <div key={event.id} onClick={() => handleSelectEvent(event)} style={{ cursor: 'pointer' }}>
+          {eventOptions.map((eventOption) => (
+            <div key={eventOption.id} onClick={() => handleSelectEvent(eventOption)} style={{ cursor: "pointer" }}>
               <EventCard
-                name={event.name}
-                menu={event.menu}
-                music={event.music}
-                guests={event.guests}
-                basePrice={event.basePrice}
+                name={eventOption.name}
+                minAttendees={eventOption.options.minAttendees}
+                maxAttendees={eventOption.options.maxAttendees}
+                menuOptions={eventOption.options.menuOptions}
+                musicOptions={eventOption.options.musicOptions}
+                baseCost={eventOption.options.baseCost}
                 onDetailsClick={handleOpenForm}
-                selected={!!selectedEvents.find((e) => e.id === event.id)}
+                selected={!!selectedEvents.find((e) => e.id === eventOption.id)}
               />
             </div>
           ))}
@@ -98,10 +81,10 @@ function EventCatalog() {
                 {selectedEvents.map((event) => (
                   <tr key={event.id}>
                     <td style={{ border: '1px solid #ccc', padding: 8 }}>{event.name}</td>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{event.menu}</td>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{event.music}</td>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{event.guests}</td>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>${event.basePrice}</td>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{event.options.menuOptions?.join(", ")}</td>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{event.options.musicOptions?.join(", ")}</td>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{event.options.maxAttendees}</td>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>${event.options.baseCost}</td>
                   </tr>
                 ))}
               </tbody>
