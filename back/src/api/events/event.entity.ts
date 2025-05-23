@@ -12,15 +12,15 @@ import { eventHallsTable } from '../event-halls/event-hall.entity';
 
 export const eventsTable = pgTable('events', {
   id: uuid().primaryKey().defaultRandom(),
-  name: text(),
-  clientId: uuid().references(() => clientsTable.id),
-  eventOptionId: uuid().references(() => eventOptionsTable.id),
-  eventHallId: uuid().references(() => eventHallsTable.id),
-  startDate: timestamp(),
-  endDate: timestamp(),
-  cost: decimal({ precision: 10, scale: 2 }),
-  status: text(),
-  details: jsonb(),
+  name: text().notNull(),
+  clientId: uuid().references(() => clientsTable.id).notNull(),
+  eventOptionId: uuid().references(() => eventOptionsTable.id).notNull(),
+  eventHallId: uuid().references(() => eventHallsTable.id).notNull(),
+  startDate: timestamp().notNull(),
+  endDate: timestamp().notNull(),
+  cost: decimal({ precision: 10, scale: 2 }).notNull(),
+  status: text().notNull(),
+  details: jsonb().notNull(),
 });
 
 export type Event = typeof eventsTable.$inferSelect;

@@ -1,11 +1,14 @@
-import { IsBoolean, IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class EventOptions {
   @IsNumber()
-    attendees: number;
+    minAttendees: number;
 
-  @IsBoolean()
-    catering: boolean;
+  @IsNumber()
+    maxAttendees: number;
+
+  @IsNumber()
+    baseCost: number;
 
   @IsNumber()
     costPerHour: number;

@@ -11,6 +11,7 @@ import { eventHallsTable } from '../event-halls/event-hall.entity';
 import { UpdateEventDto } from './interfaces/update-event.dto';
 import { eventOptionsTable } from '../event-options/event-option.entity';
 import { calculateEventTotalCost } from './utils';
+import { userTokenValidator } from '../auth/middlewares/user-token-validator';
 
 const router = express.Router();
 
@@ -101,7 +102,8 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
   }
 
   const status = EventStatus.PENDING;
-  const cost = calculateEventTotalCost(eventDto);
+  const eventOption = eventOptionExists[0];
+  const cost = calculateEventTotalCost(eventDto, eventOption.options as any);
   const event = await database.insert(eventsTable).values({
     name,
     clientId: token.userId,
@@ -137,7 +139,14 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
   });
 });
 
-router.get('/me', async (_: Request, res: Response) => {
+router.get('/me', async (req: Request, res: Response) => {
+  const errorMessage = await userTokenValidator(req, res);
+  if (errorMessage) {
+    return res.status(401).json({
+      message: errorMessage,
+    });
+  }
+
   const token = res.locals.user as UserTokenDto;
   const events: Event[] = await database.select().from(eventsTable).where(
     eq(
