@@ -10,28 +10,27 @@ import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
 import { Checkbox, InputLabel, Select } from '@mui/material';
 import { ApiService, CreateUserEventDto, EventHall, EventOption } from '../../services/api.service';
+import { Box, Stack, Alert } from '@mui/material';
 
 interface EventFormProps {
   event: EventOption | undefined;
   onClose: () => void;
-  eventId?: string;
 }
 
 export default function EventForm({ event: eventOption, onClose }: EventFormProps) {
-  const [halls, setHalls] = React.useState<EventHall[]>([]);
-
   const [form, setForm] = React.useState({
     startDate: new Date().toISOString().slice(0, 16) || '',
+    name: '',
     endDate: '',
     hall: '',
     attendees: '',
     catering: false,
     menu: '',
     music: '',
-    name: '',
   });
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [cost, setCost] = React.useState<number>(0);
+  const [halls, setHalls] = React.useState<EventHall[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -62,6 +61,25 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
       });
   }
 
+  const fetchHalls = () => {
+    ApiService.getEventHalls()
+      .then((response) => {
+        setHalls(response);
+      })
+      .catch((error) => {
+        console.error('Error fetching halls:', error);
+        setErrorMessage('Error fetching halls. Please try again.');
+      });
+  }
+
+
+  React.useEffect(
+    () => {
+      fetchHalls();
+    },
+    []
+  )
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -89,28 +107,37 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
       });
   };
 
-  React.useEffect(() => {
-    ApiService.getEventHalls()
-      .then((response) => {
-        setHalls(response);
-      })
-      .catch((error) => {
-        console.error('Error fetching event halls:', error);
-      });
-  }, []);
-
   if (!eventOption) {
     return null;
   }
 
   return (
-    <Dialog open={event !== undefined} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={eventOption !== undefined}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          p: 1
+        }
+      }}
+    >
       <form onSubmit={handleSubmit}>
-        <DialogTitle>Formulario de evento</DialogTitle>
+        <DialogTitle>
+          <Box sx={{ mb: 1 }}>
+            <DialogContentText variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 1 }}>
+              Reservar Evento
+            </DialogContentText>
+            <DialogContentText>
+              Completa los detalles para tu evento
+            </DialogContentText>
+          </Box>
+        </DialogTitle>
+
         <DialogContent>
-          <DialogContentText>
-            Introduce los datos del evento
-          </DialogContentText>
+
           <TextField
             required
             margin="dense"
@@ -240,35 +267,66 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
               }
             }
           />
-          <TextField
-            margin="dense"
-            id="cost"
-            name="cost"
-            label="Costo estimado"
-            type="number"
-            fullWidth
-            value={cost}
-            disabled
-            InputProps={{
-              startAdornment: <InputAdornment position="start">$</InputAdornment>,
-              readOnly: true,
-            }}
-            helperText="El costo se calcula automáticamente."
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button type="submit" variant="contained">Guardar</Button>
-        </DialogActions>
-      </form>
 
-      {errorMessage && (
-        <DialogContent>
-          <DialogContentText color="error">
-            {errorMessage}
-          </DialogContentText>
-        </DialogContent>
-      )}
-    </Dialog>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+
+            <TextField
+              disabled
+              margin="dense"
+              id="cost"
+              name="cost"
+              label="Costo estimado"
+              type="number"
+              fullWidth
+              value={cost}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                readOnly: true,
+              }}
+              helperText="El costo se calcula automáticamente basado en tus selecciones."
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            />
+
+            <Alert severity="info" sx={{ borderRadius: 2 }}>
+              Los precios pueden variar según la temporada y disponibilidad.
+            </Alert>
+          </Stack>
+        </DialogContent >
+
+        <DialogActions sx={{ p: 3 }}>
+          <Button
+            onClick={onClose}
+            variant="outlined"
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 'medium'
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 'medium'
+            }}
+          >
+            Reservar Evento
+          </Button>
+        </DialogActions>
+      </form >
+    </Dialog >
   );
 }
