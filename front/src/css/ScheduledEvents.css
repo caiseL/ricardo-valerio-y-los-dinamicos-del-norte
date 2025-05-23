@@ -1,0 +1,18 @@
+.scheduled-events {
+  width: 85%;
+  height: 100%;
+  display: flex;
+  overflow-x: hidden;
+  margin: 20px;
+  flex-direction: column;
+  align-content: left;
+}
+
+.bar-container {
+  width: 100%;
+  align-items: center;
+  align-content: center;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+}
