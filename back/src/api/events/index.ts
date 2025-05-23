@@ -8,6 +8,7 @@ import { clientGuard } from '../auth/middlewares/client.guard';
 import { UserTokenDto } from '../auth/interfaces/user-token.dto';
 import { and, eq } from 'drizzle-orm';
 import { eventHallsTable } from '../event-halls/event-hall.entity';
+import { UpdateEventDto } from './interfaces/update-event.dto';
 
 const router = express.Router();
 
@@ -163,12 +164,41 @@ router.get(':/:eventId', [clientGuard, getEventValidator], async (req: Request, 
   });
 });
 
-router.put<{}, {}>('/:eventId', [clientGuard, createEventValidator, getEventValidator], async (req: Request, res: Response) => {
+const updateEventValidator = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.body) {
+    return res.status(400).json({
+      message: 'Invalid request body',
+    });
+  }
+
+  const dto = new UpdateEventDto();
+  dto.startDate = req.body.startDate;
+  dto.endDate = req.body.endDate;
+  dto.eventOptionId = req.body.eventOptionId;
+  dto.eventHallId = req.body.eventHallId;
+  dto.details = req.body.details;
+  dto.status = req.body.status;
+
+  const validationError = await validate(dto);
+
+  if (validationError.length > 0) {
+    return res.status(400).json({
+      message: 'Validation failed',
+      errors: validationError,
+    });
+  }
+
+  res.locals.event = dto;
+  next();
+};
+
+
+router.put<{}, {}>('/:eventId', [clientGuard, updateEventValidator, getEventValidator], async (req: Request, res: Response) => {
   const eventId = res.locals.eventId;
-  const eventDto: CreateEventDto = req.body;
+  const eventDto: UpdateEventDto = req.body;
   const token = res.locals.user as UserTokenDto;
 
-  const { startDate, endDate, eventOptionId, eventHallId, details } = eventDto;
+  const { startDate, endDate, eventOptionId, eventHallId, status, details } = eventDto;
 
   const event: Event[] = await database.update(eventsTable).set({
     startDate,
@@ -176,6 +206,7 @@ router.put<{}, {}>('/:eventId', [clientGuard, createEventValidator, getEventVali
     eventOptionId,
     eventHallId,
     details,
+    status,
   }).where(
     and(
       eq(
