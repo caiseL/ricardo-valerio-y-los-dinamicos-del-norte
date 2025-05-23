@@ -12,9 +12,6 @@ function EventCatalog() {
 
   const handleOpenForm = () => setOpen(true);
   const handleCloseForm = () => setOpen(false);
-  const handleOnClick = () => {
-    setSelectedEvent((prev) => !prev);
-  };
 
 
   React.useEffect(
@@ -38,7 +35,7 @@ function EventCatalog() {
           <Button variant="contained">Comparar</Button>
         </div>
         <div className="cards-container">
-          <div onClick={handleOnClick} style={{ cursor: "pointer" }}>
+          <div style={{ cursor: "pointer", display: "flex" }}>
             {
               eventOptions.map((eventOption) => (
                 <EventCard
@@ -55,10 +52,10 @@ function EventCatalog() {
               ))
             }
           </div>
-        </div>
+        </div >
         <EventForm open={open} onClose={handleCloseForm} />
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 
