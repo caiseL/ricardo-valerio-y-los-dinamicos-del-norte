@@ -1,0 +1,32 @@
+.event-catalog {
+  width: 85%;
+  height: 100%;
+  display: flex;
+  overflow-x: hidden;
+}
+.header {
+  width: 85%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.event-catalog-content{
+  width: 85%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+}
+
+.cards-container{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  margin: 20px 40px;
+  gap: 50px;
+}
