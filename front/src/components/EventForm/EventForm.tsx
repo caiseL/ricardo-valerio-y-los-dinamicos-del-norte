@@ -8,7 +8,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
-import { InputLabel, Select } from '@mui/material';
+import { Checkbox, InputLabel, Select } from '@mui/material';
 import { ApiService, CreateUserEventDto, EventHall, EventOption } from '../../services/api.service';
 
 interface EventFormProps {
@@ -25,16 +25,42 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
     endDate: '',
     hall: '',
     attendees: '',
-    catering: '',
+    catering: false,
     menu: '',
     music: '',
     name: '',
   });
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [cost, setCost] = React.useState<number>(0);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const calculateTotalCost = () => {
+    const createEvent: CreateUserEventDto = {
+      name: form.name,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      eventHallId: form.hall,
+      eventOptionId: eventOption?.id!,
+      details: {
+        catering: form.catering,
+        attendees: Number(form.attendees),
+        menu: form.menu,
+        music: form.music,
+      }
+    };
+    ApiService.calculateEventCost(createEvent)
+      .then((response) => {
+        console.log('Cost calculated successfully:', response);
+        setCost(response);
+      })
+      .catch((error) => {
+        console.error('Error calculating cost:', error);
+        setErrorMessage('Error calculating cost. Please try again.');
+      });
+  }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,6 +75,7 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
         attendees: Number(form.attendees),
         menu: form.menu,
         music: form.music,
+        catering: form.catering,
       }
     };
     ApiService.createEvent(createEvent)
@@ -95,7 +122,15 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
             value={form.name}
             onChange={handleChange}
           />
-
+          <InputLabel id="catering">Servicio?</InputLabel>
+          <Checkbox
+            id="catering"
+            checked={form.catering}
+            onChange={(e) => {
+              calculateTotalCost();
+              return setForm({ ...form, catering: e.target.checked });
+            }}
+          />
           <TextField
             required
             margin="dense"
@@ -106,7 +141,12 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={form.startDate}
-            onChange={handleChange}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, startDate: e.target.value });
+              }
+            }
           />
           <TextField
             required
@@ -118,7 +158,12 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={form.endDate}
-            onChange={handleChange}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, endDate: e.target.value });
+              }
+            }
           />
           <InputLabel id="hall-label">Salón</InputLabel>
           <Select
@@ -143,7 +188,10 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
             value={form.music}
             disabled={!eventOption?.options.musicOptions.length}
             onChange={
-              (e) => setForm({ ...form, music: e.target.value as string })
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, music: e.target.value as string });
+              }
             }
           >
             {
@@ -154,6 +202,28 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
               ))
             }
           </Select>
+
+          <InputLabel id="menu-label">Menu</InputLabel>
+          <Select
+            id="menu-label"
+            value={form.menu}
+            disabled={!eventOption?.options.menuOptions.length}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, menu: e.target.value as string });
+              }
+            }
+          >
+            {
+              eventOption?.options.menuOptions.map((menu) => (
+                <MenuItem key={menu} value={menu}>
+                  {menu}
+                </MenuItem>
+              ))
+            }
+          </Select>
+
           <TextField
             required
             margin="dense"
@@ -163,7 +233,12 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={form.attendees}
-            onChange={handleChange}
+            onChange={
+              (e) => {
+                calculateTotalCost()
+                return setForm({ ...form, attendees: e.target.value });
+              }
+            }
           />
           <TextField
             margin="dense"
@@ -172,8 +247,7 @@ export default function EventForm({ event: eventOption, onClose }: EventFormProp
             label="Costo estimado"
             type="number"
             fullWidth
-            value={0}
-            onChange={handleChange}
+            value={cost}
             disabled
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,

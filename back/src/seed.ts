@@ -41,6 +41,7 @@ async function seed() {
           baseCost: 500,
           costPerAttendee: 10,
           costPerHour: 100,
+          cateringCostPerAttendee: 5,
         },
       },
       {
@@ -54,6 +55,7 @@ async function seed() {
           baseCost: 1000,
           costPerAttendee: 20,
           costPerHour: 200,
+          cateringCostPerAttendee: 5,
         },
       },
     ],
