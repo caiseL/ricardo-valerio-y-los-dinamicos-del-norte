@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { TextField, Button, Box, Typography, Paper, Link } from '@mui/material';
+import { ApiService } from '../services/api.service'; 
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [type, setType] = useState('client');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,7 +16,19 @@ const Login: React.FC = () => {
       setError('Por favor, ingresa tu correo y contraseña.');
       return;
     }
-    // Simulación de login exitoso
+    ApiService.login({
+          email: email,
+          password: password,
+          type: type
+        }).then((response) => {
+              console.log(response)
+             localStorage.setItem("accessToken", (response.json())["accessToken"]);
+
+            })
+            .catch((error) => {
+              console.error("Error fetching event options:", error);
+            });
+
     alert('¡Login exitoso!');
   };
 

@@ -49,6 +49,31 @@ export class ApiService {
     }
     return await response.json();
   }
+
+  static async login(credentials : Credential): Promise<any> {
+    const response = await fetch("http://localhost:8000/api/v1/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password,
+        type: credentials.type,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to login");
+    }
+
+    return await response.json();
+  }
+}
+
+interface Credential {
+  email: string;
+  password: string;
+  type: string;
 }
 
 interface UserEventDetail {
