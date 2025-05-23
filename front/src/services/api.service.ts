@@ -1,6 +1,6 @@
 export class ApiService {
   static async getEventOptions(): Promise<EventOption[]> {
-    const response = await fetch("http://localhost:8000/api/v1/event-options")
+    const response = await fetch("http://localhost:8000/api/v1/event-options");
     if (!response.ok) {
       throw new Error("Failed to fetch event options");
     }
@@ -13,15 +13,15 @@ export class ApiService {
       throw new Error("Access token not found");
     }
     const response = await fetch("http://localhost:8000/api/v1/events/me", {
-      method: 'GET',
+      method: "GET",
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    })
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch user events");
     }
-    const jsonResponse = await response.json() as { events: UserEvent[] };
+    const jsonResponse = (await response.json()) as { events: UserEvent[] };
     return jsonResponse["events"];
   }
 
@@ -29,6 +29,32 @@ export class ApiService {
     const response = await fetch("http://localhost:8000/api/v1/event-halls")
     if (!response.ok) {
       throw new Error("Failed to fetch event halls");
+    }
+    return await response.json();
+  }
+
+  static async signUp(client: Client): Promise<any> {
+    const response = await fetch("http://localhost:8000/api/v1/clients", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: client.email,
+        name: client.name,
+        password: client.password,
+        phoneNumber: client.telefono,
+      }),
+    });
+    if (!response.ok) {
+      console.log(JSON.stringify({
+        email: client.email,
+        name: client.name,
+        password: client.password,
+        phoneNumber: client.telefono,
+      }));
+      throw new Error("Failed to sign up client");
+
     }
     return await response.json();
   }
@@ -51,11 +77,36 @@ export class ApiService {
     }
     return await response.json();
   }
+
+  static async login(credentials: Credential): Promise<any> {
+    const response = await fetch("http://localhost:8000/api/v1/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password,
+        type: credentials.type,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to login");
+    }
+
+    return await response.json();
+  }
 }
 
 export interface EventHall {
   id: string;
   name: string;
+}
+
+interface Credential {
+  email: string;
+  password: string;
+  type: string;
 }
 
 interface UserEventDetail {
@@ -80,7 +131,7 @@ export interface UserEvent {
   name: string;
   status: string;
   cost: number;
-  details: UserEventDetail
+  details: UserEventDetail;
 }
 
 export interface EventOption {
@@ -95,4 +146,11 @@ interface EventOptionDetail {
   minAttendees: number;
   maxAttendees: number;
   baseCost: number;
+}
+
+interface Client {
+  email: string;
+  name: string;
+  password: string;
+  telefono: string;
 }

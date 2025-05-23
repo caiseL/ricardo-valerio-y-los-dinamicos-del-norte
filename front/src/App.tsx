@@ -9,11 +9,15 @@ import InventoryPage from './views/Admin/InventoryPage';
 import ClientPage from './views/ClientPage';
 import EventCatalog from './views/EventCatalog'; 
 import ScheduledEvents from './views/ScheduledEvents';
+import Login from './views/Login';
+import SigninPage from './views/SigninPage';
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Login/>}/>
+        <Route path="/signin" element={<SigninPage/>} />
         <Route path="/client" element={<ClientPage/>} >
           <Route index element={<Navigate to="catalog" replace />} />
           <Route path="catalog" element={<EventCatalog/>}/>
