@@ -1,10 +1,11 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { CreateStaffDto } from './interfaces/create-staff.dto';
 import { validate } from 'class-validator';
+import database from '../../database';
+import { staffTable } from './staff.entity';
 import { staffGuard } from '../auth/middlewares/staff.guard';
 
 const router = express.Router();
-
 
 const createStaffValidator = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.body) {
@@ -34,7 +35,32 @@ const createStaffValidator = async (req: Request, res: Response, next: NextFunct
 
 router.post<{}, {}>('/', [staffGuard, createStaffValidator], async (_: Request, res: Response) => {
   const staffDto: CreateStaffDto = res.locals.staff;
-  console.log(staffDto);
+  const { name, email, password, phoneNumber } = staffDto;
+  const result = await database.insert(staffTable).values(
+    {
+      name,
+      email,
+      password,
+      phoneNumber,
+    },
+  ).returning();
+
+  if (!result) {
+    return res.status(500).json({
+      message: 'Error creating staff',
+    });
+  }
+
+  const id = result[0].id;
+  return res.status(201).json({
+    message: 'Staff created successfully',
+    client: {
+      id,
+      name,
+      email,
+      password,
+    },
+  });
 });
 
 export default router;

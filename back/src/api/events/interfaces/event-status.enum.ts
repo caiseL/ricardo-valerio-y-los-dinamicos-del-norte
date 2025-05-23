@@ -1,0 +1,7 @@
+export enum EventStatus {
+  PENDING = 'PENDING',
+  SCHEDULED = 'SCHEDULED',
+  WAITING_FOR_PAYMENT = 'WAITING_FOR_PAYMENT',
+  PAID = 'PAID',
+  ENDED = 'ENDED',
+}

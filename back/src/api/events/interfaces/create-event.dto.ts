@@ -1,21 +1,29 @@
-import { IsDate, IsJSON, IsUUID } from 'class-validator';
+import 'reflect-metadata';
 
-enum EventStatus {
-}
+import { IsDateString, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { EventOptions } from './event-options.dto';
+
 
 export class CreateEventDto {
-  @IsDate()
-    startDate: Date;
+  @IsString()
+    name: string;
 
-  @IsDate()
-    endDate: Date;
+  @IsDateString()
+    startDate: string;
+
+  @IsDateString()
+    endDate: string;
 
   @IsUUID()
     eventOptionId: string;
 
   @IsUUID()
-    placeId: string;
+    eventHallId: string;
 
-  @IsJSON()
-    details: any;
+  @ValidateNested({
+    each: true,
+  })
+  @Type(() => EventOptions)
+    details: EventOptions;
 }
