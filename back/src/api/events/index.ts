@@ -6,7 +6,7 @@ import { EventStatus } from './interfaces/event-status.enum';
 import database from '../../database';
 import { clientGuard } from '../auth/middlewares/client.guard';
 import { UserTokenDto } from '../auth/interfaces/user-token.dto';
-import { and, eq } from 'drizzle-orm';
+import { and, between, eq } from 'drizzle-orm';
 import { eventHallsTable } from '../event-halls/event-hall.entity';
 import { UpdateEventDto } from './interfaces/update-event.dto';
 import { eventOptionsTable } from '../event-options/event-option.entity';
@@ -75,6 +75,25 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
   if (endDate < startDate) {
     return res.status(400).json({
       message: 'End date must be greater than start date',
+    });
+  }
+
+  const isEventHallOccupied = await database.select().from(eventsTable).where(
+    and(
+      eq(
+        eventsTable.eventHallId,
+        eventHallId,
+      ),
+      between(
+        eventsTable.startDate,
+        new Date(startDate),
+        new Date(endDate),
+      ),
+    ),
+  );
+  if (isEventHallOccupied.length > 0) {
+    return res.status(400).json({
+      message: 'Event hall is already occupied',
     });
   }
 
