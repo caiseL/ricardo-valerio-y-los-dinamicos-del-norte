@@ -1,7 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { CreateEventDto } from './interfaces/create-event.dto';
 import { validate } from 'class-validator';
-import { Event } from './event';
+import { Event } from './event.entity';
+import { EventStatus } from './interfaces/event-status.enum';
 
 const router = express.Router();
 
@@ -62,11 +63,13 @@ router.get(':/:eventId', [getEventValidator], async (req: Request, res: Response
   const eventId = res.locals.eventId;
   const event: Event = {
     id: eventId,
-    name: 'Sample Event',
-    description: 'Sample Description',
-    date: new Date(),
-    location: 'Sample Location',
-    organizerId: '1',
+    clientId: 'clientId',
+    eventOptionId: 'eventOptionId',
+    start: new Date(),
+    end: new Date(),
+    cost: '100',
+    progress: EventStatus.PENDING,
+    details: {},
   };
 
   return res.status(200).json({
