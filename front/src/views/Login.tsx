@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Paper, Link } from '@mui/material';
+import { TextField, Button, Box, Typography, Paper, Link, Checkbox } from '@mui/material';
 import { ApiService } from '../services/api.service'; 
 
 const Login: React.FC = () => {
@@ -53,6 +53,17 @@ const Login: React.FC = () => {
             onChange={e => setPassword(e.target.value)}
             required
           />
+          <Box display="flex" alignItems="center" mb={1}>
+            <Checkbox
+              checked={type === 'STAFF'}
+              onChange={e => setType(e.target.checked ? 'STAFF' : 'CLIENT')}
+              color="primary"
+              id="admin-checkbox"
+            />
+            <Typography htmlFor="admin-checkbox" component="label" sx={{ cursor: 'pointer' }}>
+              Administrador
+            </Typography>
+          </Box>
           <Link href="/signin">Registrate como cliente</Link>
           {error && <Typography color="error" variant="body2" mt={1}>{error}</Typography>}
           <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
