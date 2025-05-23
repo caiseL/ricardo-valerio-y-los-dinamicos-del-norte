@@ -6,20 +6,18 @@ import EventForm from "../components/EventForm/EventForm";
 import { ApiService, EventOption } from "../services/api.service";
 
 function EventCatalog() {
-  const [open, setOpen] = React.useState(false);
+  const [selectedEvent, setSelectedEvent] = React.useState<EventOption | undefined>(undefined);
   const [eventOptions, setEventOptions] = React.useState<EventOption[]>([]);
   const [selectedEvents, setSelectedEvents] = React.useState<any[]>([]);
   const [compareOpen, setCompareOpen] = React.useState(false);
-  const [selectedEvent, setSelectedEvent] = React.useState(false);
 
-  const handleOpenForm = () => setOpen(true);
-  const handleCloseForm = () => setOpen(false);
+
+  const handleCloseForm = () => setSelectedEvent(undefined);
 
   React.useEffect(
     () => {
       ApiService.getEventOptions()
         .then((response) => {
-          console.log(response)
           setEventOptions(response);
         })
         .catch((error) => {
@@ -61,13 +59,13 @@ function EventCatalog() {
                 menuOptions={eventOption.options.menuOptions}
                 musicOptions={eventOption.options.musicOptions}
                 baseCost={eventOption.options.baseCost}
-                onDetailsClick={handleOpenForm}
+                onDetailsClick={() => setSelectedEvent(eventOption)}
                 selected={!!selectedEvents.find((e) => e.id === eventOption.id)}
               />
             </div>
           ))}
         </div>
-        <EventForm open={open} onClose={handleCloseForm} />
+        <EventForm event={selectedEvent} onClose={handleCloseForm} />
         {compareOpen && (
           <div className="compare-modal" style={{ background: '#fff', border: '1px solid #ccc', borderRadius: 8, padding: 24, position: 'fixed', top: '10%', left: '10%', right: '10%', zIndex: 1300 }}>
             <h3>Comparación de paquetes</h3>
