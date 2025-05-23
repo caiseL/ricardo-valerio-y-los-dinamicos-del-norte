@@ -1,8 +1,5 @@
 import { IsDate, IsJSON, IsUUID } from 'class-validator';
 
-enum EventStatus {
-}
-
 export class CreateEventDto {
   @IsDate()
     startDate: Date;

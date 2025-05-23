@@ -14,10 +14,10 @@ export const eventsTable = pgTable('events', {
   clientId: uuid().references(() => clientsTable.id),
   eventOptionId: uuid().references(() => eventOptionsTable.id),
   // eventHallId: uuid().references(() => eventHall.id),
-  start: timestamp(),
-  end: timestamp(),
+  startDate: timestamp(),
+  endDate: timestamp(),
   cost: decimal({ precision: 10, scale: 2 }),
-  progress: text(),
+  status: text(),
   details: jsonb(),
 });
 
