@@ -7,6 +7,7 @@ import database from '../../database';
 import { clientGuard } from '../auth/middlewares/client.guard';
 import { UserTokenDto } from '../auth/interfaces/user-token.dto';
 import { and, eq } from 'drizzle-orm';
+import { eventHallsTable } from '../event-halls/event-hall.entity';
 
 const router = express.Router();
 
@@ -43,6 +44,39 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
 
   const { startDate, endDate, eventOptionId, eventHallId, details } = eventDto;
 
+  const eventHallExists = await database.select().from(eventHallsTable).where(
+    eq(
+      eventHallsTable.id,
+      eventHallId,
+    ),
+  );
+  if (!eventHallExists) {
+    return res.status(404).json({
+      message: 'Event hall not found',
+    });
+  }
+
+  const eventOptionExists = await database.select().from(eventsTable).where(
+    eq(
+      eventsTable.id,
+      eventOptionId,
+    ),
+  );
+  if (!eventOptionExists) {
+    return res.status(404).json({
+      message: 'Event option not found',
+    });
+  }
+
+  // TODO: do json validation on detals and eventOption.restrictions
+
+  if (endDate < startDate) {
+    return res.status(400).json({
+      message: 'End date must be greater than start date',
+    });
+  }
+
+  const cost = 0;
   const status = EventStatus.PENDING;
   const event = await database.insert(eventsTable).values({
     clientId: token.userId,
@@ -50,8 +84,8 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
     endDate,
     eventHallId,
     eventOptionId,
-    cost: '0',
-    status: EventStatus.PENDING,
+    cost: cost.toString(),
+    status,
     details,
   }).returning();
 
@@ -70,7 +104,7 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
       endDate,
       eventOptionId,
       eventHallId,
-      cost: 0,
+      cost,
       status,
       details,
     },
