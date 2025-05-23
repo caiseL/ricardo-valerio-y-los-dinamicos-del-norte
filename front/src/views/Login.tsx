@@ -6,7 +6,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [type, setType] = useState('client');
+  const [type, setType] = useState('CLIENT');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,14 +22,12 @@ const Login: React.FC = () => {
           type: type
         }).then((response) => {
               console.log(response)
-             localStorage.setItem("accessToken", (response.json())["accessToken"]);
-
+             localStorage.setItem("accessToken", (response["accessToken"]));
+              window.location.href = "/client/catalog";
             })
             .catch((error) => {
-              console.error("Error fetching event options:", error);
+              console.error("Eror while sign in:", error);
             });
-
-    alert('¡Login exitoso!');
   };
 
   return (
