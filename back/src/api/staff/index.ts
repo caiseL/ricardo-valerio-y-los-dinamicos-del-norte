@@ -3,6 +3,7 @@ import { CreateStaffDto } from './interfaces/create-staff.dto';
 import { validate } from 'class-validator';
 import database from '../../database';
 import { staffTable } from './staff.entity';
+import { staffGuard } from '../auth/middlewares/staff.guard';
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ const createStaffValidator = async (req: Request, res: Response, next: NextFunct
   next();
 };
 
-router.post<{}, {}>('/', [createStaffValidator], async (_: Request, res: Response) => {
+router.post<{}, {}>('/', [staffGuard, createStaffValidator], async (_: Request, res: Response) => {
   const staffDto: CreateStaffDto = res.locals.staff;
   const { name, email, password, phoneNumber } = staffDto;
   const result = await database.insert(staffTable).values(
