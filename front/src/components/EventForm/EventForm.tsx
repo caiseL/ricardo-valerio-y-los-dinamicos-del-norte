@@ -8,23 +8,29 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
+import { InputLabel, Select } from '@mui/material';
+import { ApiService, CreateUserEventDto, EventHall, EventOption } from '../../services/api.service';
 
 interface EventFormProps {
-  open: boolean;
+  event: EventOption | undefined;
   onClose: () => void;
+  eventId?: string;
 }
 
-export default function EventForm({ open, onClose }: EventFormProps) {
+export default function EventForm({ event: eventOption, onClose }: EventFormProps) {
+  const [halls, setHalls] = React.useState<EventHall[]>([]);
+
   const [form, setForm] = React.useState({
-    date: '',
-    startTime: '',
-    endTime: '',
-    place: '',
-    music: '',
-    guests: '',
+    startDate: new Date().toISOString().slice(0, 16) || '',
+    endDate: '',
+    hall: '',
+    attendees: '',
+    catering: '',
     menu: '',
-    cost: '',
+    music: '',
+    name: '',
   });
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -32,12 +38,46 @@ export default function EventForm({ open, onClose }: EventFormProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log(form);
-    onClose();
+
+    const createEvent: CreateUserEventDto = {
+      name: form.name,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      eventHallId: form.hall,
+      eventOptionId: eventOption?.id!,
+      details: {
+        attendees: Number(form.attendees),
+        menu: form.menu,
+        music: form.music,
+      }
+    };
+    ApiService.createEvent(createEvent)
+      .then((response) => {
+        console.log('Event created successfully:', response);
+        onClose();
+      })
+      .catch((error) => {
+        console.error('Error creating event:', error);
+        setErrorMessage('Error creating event. Please try again.');
+      });
   };
 
+  React.useEffect(() => {
+    ApiService.getEventHalls()
+      .then((response) => {
+        setHalls(response);
+      })
+      .catch((error) => {
+        console.error('Error fetching event halls:', error);
+      });
+  }, []);
+
+  if (!eventOption) {
+    return null;
+  }
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={event !== undefined} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
         <DialogTitle>Formulario de evento</DialogTitle>
         <DialogContent>
@@ -47,87 +87,82 @@ export default function EventForm({ open, onClose }: EventFormProps) {
           <TextField
             required
             margin="dense"
-            id="date"
-            name="date"
-            label="Fecha"
-            type="date"
+            id="name"
+            name="name"
+            label="Nombre del evento"
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={form.date}
+            value={form.name}
             onChange={handleChange}
           />
+
           <TextField
             required
             margin="dense"
-            id="startTime"
-            name="startTime"
-            label="Horario de inicio"
-            type="time"
+            id="startDate"
+            name="startDate"
+            label="Inicio"
+            type="datetime-local"
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={form.startTime}
+            value={form.startDate}
             onChange={handleChange}
           />
           <TextField
             required
             margin="dense"
-            id="endTime"
-            name="endTime"
-            label="Horario de finalización"
-            type="time"
+            id="endDate"
+            name="endDate"
+            label="Fin"
+            type="datetime-local"
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={form.endTime}
+            value={form.endDate}
             onChange={handleChange}
           />
-          <TextField
-            required
-            margin="dense"
-            id="place"
-            name="place"
-            label="Lugar"
-            type="text"
-            fullWidth
-            value={form.place}
-            onChange={handleChange}
-          />
-          <TextField
-            required
-            margin="dense"
-            id="music"
-            name="music"
-            label="Música"
-            select
-            fullWidth
-            value={form.music}
-            onChange={handleChange}
+          <InputLabel id="hall-label">Salón</InputLabel>
+          <Select
+            id="hall-label"
+            value={form.hall}
+            onChange={
+              (e) => setForm({ ...form, hall: e.target.value as string })
+            }
           >
-            <MenuItem value="banda">Banda</MenuItem>
-            <MenuItem value="dj">DJ</MenuItem>
-            <MenuItem value="norteña">Norteña</MenuItem>
-            <MenuItem value="otro">Otro</MenuItem>
-          </TextField>
+            {
+              halls.map((hall) => (
+                <MenuItem key={hall.id} value={hall.id}>
+                  {hall.name}
+                </MenuItem>
+              ))
+            }
+          </Select>
+
+          <InputLabel id="music-label">Musica</InputLabel>
+          <Select
+            id="music-label"
+            value={form.music}
+            disabled={!eventOption?.options.musicOptions.length}
+            onChange={
+              (e) => setForm({ ...form, music: e.target.value as string })
+            }
+          >
+            {
+              eventOption?.options.musicOptions.map((music) => (
+                <MenuItem key={music} value={music}>
+                  {music}
+                </MenuItem>
+              ))
+            }
+          </Select>
           <TextField
             required
             margin="dense"
-            id="guests"
-            name="guests"
+            id="attendees"
+            name="attendees"
             label="Número de invitados"
-            type="number"
             fullWidth
-            value={form.guests}
-            onChange={handleChange}
-            inputProps={{ min: 1 }}
-          />
-          <TextField
-            required
-            margin="dense"
-            id="menu"
-            name="menu"
-            label="Menú"
-            type="text"
-            fullWidth
-            value={form.menu}
+            InputLabelProps={{ shrink: true }}
+            value={form.attendees}
             onChange={handleChange}
           />
           <TextField
@@ -137,8 +172,9 @@ export default function EventForm({ open, onClose }: EventFormProps) {
             label="Costo estimado"
             type="number"
             fullWidth
-            value={form.cost}
+            value={0}
             onChange={handleChange}
+            disabled
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
               readOnly: true,
@@ -151,6 +187,14 @@ export default function EventForm({ open, onClose }: EventFormProps) {
           <Button type="submit" variant="contained">Guardar</Button>
         </DialogActions>
       </form>
+
+      {errorMessage && (
+        <DialogContent>
+          <DialogContentText color="error">
+            {errorMessage}
+          </DialogContentText>
+        </DialogContent>
+      )}
     </Dialog>
   );
 }
