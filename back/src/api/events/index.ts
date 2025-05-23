@@ -5,6 +5,8 @@ import { Event, eventsTable } from './event.entity';
 import { EventStatus } from './interfaces/event-status.enum';
 import database from '../../database';
 import { clientGuard } from '../auth/middlewares/client.guard';
+import { UserTokenDto } from '../auth/interfaces/user-token.dto';
+import { eq } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -36,13 +38,14 @@ const createEventValidator = async (req: Request, res: Response, next: NextFunct
 };
 
 router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request, res: Response) => {
-  const eventDto: CreateEventDto = res.locals.event;
+  const eventDto = res.locals.event as CreateEventDto;
+  const token = res.locals.user as UserTokenDto;
 
   const { startDate, endDate, eventOptionId, placeId, details } = eventDto;
 
   const status = EventStatus.PENDING;
   const event = await database.insert(eventsTable).values({
-    clientId: '',
+    clientId: token.userId,
     startDate,
     endDate,
     eventOptionId,
@@ -74,7 +77,13 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
 });
 
 router.get('/me', async (_: Request, res: Response) => {
-  const events: Event[] = [];
+  const token = res.locals.user as UserTokenDto;
+  const events: Event[] = await database.select().from(eventsTable).where(
+    eq(
+      eventsTable.clientId,
+      token.userId,
+    ),
+  );
   return res.status(200).json({
     events,
   });

@@ -4,7 +4,12 @@ import { UserTokenDto } from '../interfaces/user-token.dto';
 import { userTokenValidator } from './user-token-validator';
 
 export const staffGuard = async (req: Request, res: Response, next: NextFunction) => {
-  userTokenValidator(req, res, next);
+  const errorMessage = await userTokenValidator(req, res);
+  if (errorMessage) {
+    return res.status(401).json({
+      message: errorMessage,
+    });
+  }
 
   const user = res.locals.user as UserTokenDto;
 
