@@ -1,6 +1,14 @@
-import { IsDateString, IsUUID } from 'class-validator';
+import 'reflect-metadata';
+
+import { IsDateString, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { EventOptions } from './event-options.dto';
+
 
 export class CreateEventDto {
+  @IsString()
+    name: string;
+
   @IsDateString()
     startDate: string;
 
@@ -13,5 +21,9 @@ export class CreateEventDto {
   @IsUUID()
     eventHallId: string;
 
-  details: any;
+  @ValidateNested({
+    each: true,
+  })
+  @Type(() => EventOptions)
+    details: EventOptions;
 }

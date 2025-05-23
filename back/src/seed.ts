@@ -1,5 +1,6 @@
 import { eventHallsTable } from './api/event-halls/event-hall.entity';
 import { eventOptionsTable } from './api/event-options/event-option.entity';
+import { EventOptions } from './api/events/interfaces/event-options.dto';
 import database from './database';
 
 async function seed() {
@@ -16,30 +17,32 @@ async function seed() {
     ],
   );
 
+
   await database.insert(eventOptionsTable).values(
     [
       {
         id: '444d91fe-ac23-4842-be0b-5a02768dcde7',
         name: 'Graduación',
         options: {
-          maxAttendees: 100,
-          catering: true,
-          audioVisual: true,
+          attendees: 100,
+          catering: false,
+          costPerAttendee: 10,
           musicOptions: ['DJ', 'Live Band'],
           menuOptions: ['Tacos'],
-        },
+          costPerHour: 100,
+        } as EventOptions,
       },
       {
         id: '0aec685a-43a9-4937-902f-c3654a7a3152',
         name: 'Boda',
         options: {
-          minAttendees: 50,
-          maxAttendees: 200,
-          catering: false,
-          audioVisual: true,
+          attendees: 50,
+          catering: true,
+          costPerAttendee: 20,
           musicOptions: ['DJ', 'Live Band', 'Mariachi'],
           menuOptions: ['Buffet', 'Barbacue'],
-        },
+          costPerHour: 200,
+        } as EventOptions,
       },
     ],
   );

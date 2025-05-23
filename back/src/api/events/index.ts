@@ -10,6 +10,7 @@ import { and, between, eq } from 'drizzle-orm';
 import { eventHallsTable } from '../event-halls/event-hall.entity';
 import { UpdateEventDto } from './interfaces/update-event.dto';
 import { eventOptionsTable } from '../event-options/event-option.entity';
+import { calculateEventTotalCost } from './utils';
 
 const router = express.Router();
 
@@ -21,13 +22,16 @@ const createEventValidator = async (req: Request, res: Response, next: NextFunct
   }
 
   const dto = new CreateEventDto();
+  dto.name = req.body.name;
   dto.startDate = req.body.startDate;
   dto.endDate = req.body.endDate;
   dto.eventOptionId = req.body.eventOptionId;
   dto.eventHallId = req.body.eventHallId;
   dto.details = req.body.details;
 
-  const validationError = await validate(dto);
+  const validationError = await validate(dto, {
+    forbidUnknownValues: false,
+  });
 
   if (validationError.length > 0) {
     return res.status(400).json({
@@ -44,7 +48,7 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
   const eventDto = res.locals.event as CreateEventDto;
   const token = res.locals.user as UserTokenDto;
 
-  const { startDate, endDate, eventOptionId, eventHallId, details } = eventDto;
+  const { name, startDate, endDate, eventOptionId, eventHallId, details } = eventDto;
 
   const eventHallExists = await database.select().from(eventHallsTable).where(
     eq(
@@ -69,7 +73,6 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
       message: 'Event option not found',
     });
   }
-
   // TODO: do json validation on detals and eventOption.restrictions
 
   if (endDate < startDate) {
@@ -97,9 +100,10 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
     });
   }
 
-  const cost = 0;
   const status = EventStatus.PENDING;
+  const cost = calculateEventTotalCost(eventDto);
   const event = await database.insert(eventsTable).values({
+    name,
     clientId: token.userId,
     startDate: new Date(startDate),
     endDate: new Date(endDate),
@@ -121,6 +125,7 @@ router.post<{}, {}>('/', [clientGuard, createEventValidator], async (_: Request,
     message: 'Event created successfully',
     event: {
       id,
+      name,
       startDate,
       endDate,
       eventOptionId,
