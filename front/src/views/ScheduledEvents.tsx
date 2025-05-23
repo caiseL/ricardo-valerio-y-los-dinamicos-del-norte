@@ -3,6 +3,7 @@ import * as React from 'react';
 import EventBar from '../components/EventBar/EventBar';
 import EventDetails from '../components/EventDetails/EventsDetails';
 import { ApiService, UserEvent } from '../services/api.service';
+import Button from '@mui/material/Button';
 
 function ScheduledEvents() {
   const [open, setOpen] = React.useState(false);
@@ -39,7 +40,7 @@ function ScheduledEvents() {
           </div>
         ))
       }
-    </div>
+    </div >
   );
 }
 

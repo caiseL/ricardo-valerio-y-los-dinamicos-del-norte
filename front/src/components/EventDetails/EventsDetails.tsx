@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -12,8 +11,6 @@ interface EventDetailsProps {
   onClose: () => void;
   event: UserEvent;
 }
-
-
 
 export default function EventDetails({ open, onClose, event }: EventDetailsProps) {
   return (
@@ -29,11 +26,11 @@ export default function EventDetails({ open, onClose, event }: EventDetailsProps
           <Typography variant="subtitle1"><strong>Música:</strong> {event.details.music}</Typography>
           <Typography variant="subtitle1"><strong>Invitados:</strong> {event.details.attendees}</Typography>
           <Typography variant="subtitle1"><strong>Costo estimado:</strong> ${event.cost}</Typography>
-        </Box>
-      </DialogContent>
+        </Box >
+      </DialogContent >
       <DialogActions>
         <Button onClick={onClose}>Cerrar</Button>
       </DialogActions>
-    </Dialog>
+    </Dialog >
   );
 }

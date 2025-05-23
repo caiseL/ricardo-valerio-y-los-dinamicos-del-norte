@@ -2,7 +2,6 @@ import { clientsTable } from './api/clients/client.entity';
 import { eventHallsTable } from './api/event-halls/event-hall.entity';
 import { eventOptionsTable } from './api/event-options/event-option.entity';
 import { Event, eventsTable } from './api/events/event.entity';
-import { EventOptions } from './api/events/interfaces/event-options.dto';
 import { EventStatus } from './api/events/interfaces/event-status.enum';
 import { UserEventOptions } from './api/events/interfaces/user-event-options.dto';
 import database from './database';
@@ -42,7 +41,7 @@ async function seed() {
           baseCost: 500,
           costPerAttendee: 10,
           costPerHour: 100,
-        } as EventOptions,
+        },
       },
       {
         id: '0aec685a-43a9-4937-902f-c3654a7a3152',
@@ -55,7 +54,7 @@ async function seed() {
           baseCost: 1000,
           costPerAttendee: 20,
           costPerHour: 200,
-        } as EventOptions,
+        },
       },
     ],
   );
